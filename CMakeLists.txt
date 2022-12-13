@@ -27,6 +27,19 @@ if (${PDCURSES_TARGET} STREQUAL "x11")
 list(APPEND HDRS x11/pdcx11.h)
 endif (${PDCURSES_TARGET} STREQUAL "x11")
 	
+if (UNIX)
+
+set(XLIBINCLUDE "")
+set(XLIBLIBRARY "X11.so")
+
+if (APPLE)
+set(XLIBINCLUDE "/usr/X11/include/X11" "/usr/X11/include")
+set(XLIBLIBRARY "/usr/X11/lib/libX11.dylib" "/usr/X11/lib/libXt.dylib" "/usr/X11/lib/libXmu.dylib" "/usr/X11/lib/libXpm.dylib" "/usr/X11/lib/libXaw.dylib")
+endif (APPLE)
+
+endif(UNIX)
+	
+	
 set(SRCS
 pdcurses/addch.c
 pdcurses/addchstr.c
@@ -76,6 +89,12 @@ ${PDCURSES_TARGET}/pdcscrn.c
 ${PDCURSES_TARGET}/pdcsetsc.c
 ${PDCURSES_TARGET}/pdcutil.c
 )
+
+if (${PDCURSES_TARGET} STREQUAL "x11")
+list(APPEND SRCS x11/sb.c)
+list(APPEND SRCS x11/scrlbox.c)
+list(APPEND HDRS x11/scrlbox.h)
+endif (${PDCURSES_TARGET} STREQUAL "x11")
 
 set(FIREWORK
 demos/firework.c
@@ -139,9 +158,16 @@ target_include_directories(pdcurses
    	${CMAKE_CURRENT_SOURCE_DIR}
     )	
 	
-target_link_libraries(pdcurses
-    PRIVATE	    
+if (${PDCURSES_TARGET} STREQUAL "x11")
+target_include_directories(pdcurses
+    PUBLIC
+   	${XLIBINCLUDE}
     )	
+target_link_libraries(pdcurses
+    PUBLIC
+	  ${XLIBLIBRARY}  
+    )	
+endif(${PDCURSES_TARGET} STREQUAL "x11")
     
     
 add_executable(firework ${FIREWORK})
