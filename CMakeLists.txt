@@ -1,11 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 project(PDCurses)
 
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib")
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib")
-set(CMAKE_PDB_OUTPUT_DIRECTORY     "${CMAKE_CURRENT_BINARY_DIR}/bin")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/bin")
-
 set(PDCURSES_TARGET "wincon" CACHE STRING "Choose your target environment")
 set_property(CACHE PDCURSES_TARGET PROPERTY STRINGS wincon sdl2 x11)
 
@@ -168,6 +163,19 @@ target_link_libraries(pdcurses
 	  ${XLIBLIBRARY}  
     )	
 endif(${PDCURSES_TARGET} STREQUAL "x11")
+
+if (${PDCURSES_TARGET} STREQUAL "sdl2")
+target_include_directories(pdcurses
+    PUBLIC
+   	${CMAKE_CURRENT_SOURCE_DIR}/../SDL2/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../SDL2_ttf
+    )	
+target_link_libraries(pdcurses
+    PUBLIC
+	SDL2
+    SDL2_ttf
+    )	
+endif (${PDCURSES_TARGET} STREQUAL "sdl2")
     
     
 add_executable(firework ${FIREWORK})
