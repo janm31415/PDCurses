@@ -24,8 +24,8 @@ endif (${PDCURSES_TARGET} STREQUAL "x11")
 	
 if (UNIX)
 
-set(XLIBINCLUDE "")
-set(XLIBLIBRARY "X11.so")
+set(XLIBINCLUDE "/usr/include/X11")
+set(XLIBLIBRARY "/usr/lib/x86_64-linux-gnu/libXt.so" "/usr/lib/x86_64-linux-gnu/libXmu.so" "/usr/lib/x86_64-linux-gnu/libXpm.so" "/usr/lib/x86_64-linux-gnu/libXaw.so" "X11")
 
 if (APPLE)
 set(XLIBINCLUDE "/usr/X11/include/X11" "/usr/X11/include")
