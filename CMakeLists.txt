@@ -140,13 +140,21 @@ add_definitions(-D_SCL_SECURE_NO_WARNINGS)
 if (WIN32)
 add_definitions(-DPDC_DLL_BUILD)
 endif (WIN32)
-add_definitions(-DPDC_RGB)
-add_definitions(-DPDC_FORCE_UTF8)
-add_definitions(-DPDC_WIDE)
+#add_definitions(-DPDC_RGB)
+#add_definitions(-DPDC_FORCE_UTF8)
+#add_definitions(-DPDC_WIDE)
 
 add_library(pdcurses SHARED ${HDRS} ${SRCS})
 source_group("Header Files" FILES ${hdrs})
 source_group("Source Files" FILES ${srcs})
+
+target_compile_definitions(pdcurses
+    PUBLIC
+        PDC_RGB
+        PDC_FORCE_UTF8
+        PDC_WIDE
+)
+
 
 target_include_directories(pdcurses
     PUBLIC
