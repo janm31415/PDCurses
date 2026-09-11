@@ -285,9 +285,9 @@ int PDC_scr_open(void)
             fprintf(stderr, "Could not open SDL window: %s\n", SDL_GetError());
             return ERR;
         }
-        #if !defined(__APPLE__) // apple uses the icns icon to set the icon correctly
-        SDL_SetWindowIcon(pdc_window, pdc_icon);
-        #endif
+
+        //SDL_SetWindowIcon(pdc_window, pdc_icon);
+
     }
 
     /* Events must be pumped before calling SDL_GetWindowSurface, or
