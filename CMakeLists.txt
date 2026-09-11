@@ -180,7 +180,7 @@ target_include_directories(pdcurses
     )	
 target_link_libraries(pdcurses
     PUBLIC
-	SDL2
+	  SDL2-static
     SDL2_ttf
     )	
 endif (${PDCURSES_TARGET} STREQUAL "sdl2")
