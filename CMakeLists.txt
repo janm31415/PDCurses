@@ -138,13 +138,13 @@ endif (WIN32)
 add_definitions(-D_SCL_SECURE_NO_WARNINGS)
 
 if (WIN32)
-add_definitions(-DPDC_DLL_BUILD)
+#add_definitions(-DPDC_DLL_BUILD)
 endif (WIN32)
 #add_definitions(-DPDC_RGB)
 #add_definitions(-DPDC_FORCE_UTF8)
 #add_definitions(-DPDC_WIDE)
 
-add_library(pdcurses SHARED ${HDRS} ${SRCS})
+add_library(pdcurses ${HDRS} ${SRCS})
 source_group("Header Files" FILES ${hdrs})
 source_group("Source Files" FILES ${srcs})
 
