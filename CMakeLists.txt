@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 project(PDCurses)
 
-set(PDCURSES_TARGET "wincon" CACHE STRING "Choose your target environment")
+set(PDCURSES_TARGET "sdl2" CACHE STRING "Choose your target environment")
 set_property(CACHE PDCURSES_TARGET PROPERTY STRINGS wincon sdl2 x11)
 
 set(HDRS
