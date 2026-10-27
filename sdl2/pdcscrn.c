@@ -37,8 +37,54 @@ Uint32 pdc_mapped[PDC_MAXCOL];
 int pdc_fheight, pdc_fwidth, pdc_fthick, pdc_flastc;
 bool pdc_own_window;
 
+PdcRgb *pdc_rgb = NULL;
+int pdc_rgb_rows = 0, pdc_rgb_cols = 0;
+
+void PDC_free_rgb(void)
+{
+    free(pdc_rgb);
+    pdc_rgb = NULL;
+    pdc_rgb_rows = pdc_rgb_cols = 0;
+}
+
+static bool _rgb_ensure(void)
+{
+    if (!pdc_rgb || pdc_rgb_rows != SP->lines || pdc_rgb_cols != SP->cols)
+    {
+        free(pdc_rgb);
+        pdc_rgb = calloc((size_t)SP->lines * SP->cols, sizeof(PdcRgb));
+        pdc_rgb_rows = pdc_rgb ? SP->lines : 0;
+        pdc_rgb_cols = pdc_rgb ? SP->cols : 0;
+    }
+
+    return pdc_rgb != NULL;
+}
+
+int PDC_set_cell_rgb(int y, int x, Uint32 fg, Uint32 bg)
+{
+    PdcRgb *c;
+
+    if (!SP || y < 0 || x < 0 || y >= SP->lines || x >= SP->cols ||
+        !_rgb_ensure())
+        return 0;
+
+    c = &pdc_rgb[y * pdc_rgb_cols + x];
+    if (c->on && c->fg == fg && c->bg == bg)
+        return 0;
+
+    c->fg = fg;
+    c->bg = bg;
+    c->on = TRUE;
+
+    if (curscr && y < curscr->_maxy && x < curscr->_maxx)
+        curscr->_y[y][x] = (chtype)-1;   /* force doupdate() to redraw it */
+
+    return 1;
+}
+
 static void _clean(void)
 {
+    PDC_free_rgb();
 #ifdef PDC_WIDE
     if (pdc_ttffont)
     {
@@ -346,6 +392,8 @@ int PDC_scr_open(void)
 
 int PDC_resize_screen(int nlines, int ncols)
 {
+    PDC_free_rgb();   /* re-allocated lazily at the new SP->lines/cols */
+
     if (!pdc_own_window)
         return ERR;
 

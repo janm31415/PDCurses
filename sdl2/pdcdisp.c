@@ -245,6 +245,66 @@ bool _grprint(chtype ch, SDL_Rect dest)
     return FALSE;  /* didn't draw it -- fall back to acs_map */
 }
 
+/* draw one cell using direct RGB colours from the side buffer */
+
+static void _draw_rgb_cell(chtype ch, PdcRgb c, SDL_Rect dest, attr_t attr)
+{
+    Uint16 chstr[2] = {0, 0};
+    Uint32 fgv = c.fg, bgv = c.bg;
+    SDL_Color fg;
+
+    if (attr & A_REVERSE)
+    {
+        fgv = c.bg;
+        bgv = c.fg;
+    }
+
+    fg.r = (Uint8)(fgv >> 16);
+    fg.g = (Uint8)(fgv >> 8);
+    fg.b = (Uint8)fgv;
+    fg.a = 255;
+
+    dest.w = pdc_fwidth;
+    SDL_FillRect(pdc_screen, &dest, SDL_MapRGB(pdc_screen->format,
+                 (Uint8)(bgv >> 16), (Uint8)(bgv >> 8), (Uint8)bgv));
+
+    if (ch & A_ALTCHARSET && !(ch & 0xff80))
+        ch = acs_map[ch & 0x7f];
+
+    ch &= A_CHARTEXT;
+
+    if (ch != ' ')
+    {
+        SDL_Surface *g;
+
+        chstr[0] = (Uint16)ch;
+        g = TTF_RenderUNICODE_Blended(pdc_ttffont, chstr, fg);
+        if (g)
+        {
+            SDL_Rect src;
+            int center = pdc_fwidth > g->w ? (pdc_fwidth - g->w) >> 1 : 0;
+
+            src.x = 0;
+            src.y = pdc_fheight - dest.h;   /* cursor may be a bottom slice */
+            src.w = pdc_fwidth;
+            src.h = dest.h;
+
+            dest.x += center;
+            SDL_BlitSurface(g, &src, pdc_screen, &dest);
+            dest.x -= center;
+            SDL_FreeSurface(g);
+        }
+    }
+
+    if (attr & A_UNDERLINE)
+    {
+        dest.y += dest.h - pdc_fthick;
+        dest.h = pdc_fthick;
+        SDL_FillRect(pdc_screen, &dest,
+                     SDL_MapRGB(pdc_screen->format, fg.r, fg.g, fg.b));
+    }
+}
+
 #endif
 
 /* draw a cursor at (y, x) */
@@ -288,6 +348,23 @@ void PDC_gotoyx(int row, int col)
     dest.w = src.w;
 
 #ifdef PDC_WIDE
+    if (PAIR_NUMBER(ch) == PDC_RGB_PAIR && pdc_rgb &&
+        row < pdc_rgb_rows && col < pdc_rgb_cols)
+    {
+        _draw_rgb_cell(ch, pdc_rgb[row * pdc_rgb_cols + col], dest,
+                       ch & (A_REVERSE | A_UNDERLINE));
+        oldch = (chtype)(-1);
+
+        if (oldrow != row || oldcol != col)
+        {
+            if (rectcount == MAXRECT)
+                PDC_update_rects();
+
+            uprect[rectcount++] = dest;
+        }
+        return;
+    }
+
     SDL_FillRect(pdc_screen, &dest, pdc_mapped[backgr]);
 
     if (!(SP->visibility == 2 && (ch & A_ALTCHARSET && !(ch & 0xff80)) &&
@@ -375,6 +452,27 @@ void _new_packet(attr_t attr, int lineno, int x, int len, const chtype *srcp)
     }
     else
         uprect[rectcount++] = dest;
+
+#ifdef PDC_WIDE
+    /* direct-RGB run: draw cell by cell from the side buffer */
+
+    if (PAIR_NUMBER(attr) == PDC_RGB_PAIR && pdc_rgb && lineno < pdc_rgb_rows)
+    {
+        TTF_SetFontStyle(pdc_ttffont,
+            ( ((attr & A_BOLD) && (sysattrs & A_BOLD)) ?
+                TTF_STYLE_BOLD : 0) |
+            ( ((attr & A_ITALIC) && (sysattrs & A_ITALIC)) ?
+                TTF_STYLE_ITALIC : 0) );
+
+        for (j = 0; j < len && x + j < pdc_rgb_cols; j++, dest.x += pdc_fwidth)
+            _draw_rgb_cell(blink ? ' ' : srcp[j],
+                           pdc_rgb[lineno * pdc_rgb_cols + x + j], dest,
+                           blink ? (attr & A_REVERSE) : attr);
+
+        oldch = (chtype)(-1);   /* _set_attr cache is stale now */
+        return;
+    }
+#endif
 
     _set_attr(attr);
 
