@@ -76,8 +76,20 @@ int PDC_set_cell_rgb(int y, int x, Uint32 fg, Uint32 bg)
     c->bg = bg;
     c->on = TRUE;
 
+    /* doupdate() redraws a cell only when curscr differs from SP->lastscr
+       (the physical screen). The chtype is unchanged (same char, pair 255),
+       so poison the physical copy and flag the cell as changed in curscr. */
+
+    if (SP->lastscr && y < SP->lastscr->_maxy && x < SP->lastscr->_maxx)
+        SP->lastscr->_y[y][x] = (chtype)-1;
+
     if (curscr && y < curscr->_maxy && x < curscr->_maxx)
-        curscr->_y[y][x] = (chtype)-1;   /* force doupdate() to redraw it */
+    {
+        if (curscr->_firstch[y] == _NO_CHANGE || x < curscr->_firstch[y])
+            curscr->_firstch[y] = x;
+        if (x > curscr->_lastch[y])
+            curscr->_lastch[y] = x;
+    }
 
     return 1;
 }
