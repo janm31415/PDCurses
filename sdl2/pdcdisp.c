@@ -586,6 +586,8 @@ void PDC_transform_line(int lineno, int x, int len, const chtype *srcp)
 
     PDC_LOG(("PDC_transform_line() - called: lineno=%d\n", lineno));
 
+    PDC_overlay_touch(lineno, x, len);
+
     old_attr = *srcp & (A_ATTRIBUTES ^ A_ALTCHARSET);
 
     for (i = 1, j = 1; j < len; i++, j++)
@@ -654,8 +656,17 @@ void PDC_blink_text(void)
     PDC_doupdate();
 }
 
+void PDC_add_update_rect(SDL_Rect rect)
+{
+    if (rectcount == MAXRECT)
+        PDC_update_rects();
+
+    uprect[rectcount++] = rect;
+}
+
 void PDC_doupdate(void)
 {
+    PDC_paint_overlays();
     PDC_update_rects();
 }
 

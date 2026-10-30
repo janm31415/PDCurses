@@ -21,7 +21,7 @@ endif (${PDCURSES_TARGET} STREQUAL "sdl2")
 if (${PDCURSES_TARGET} STREQUAL "x11")
 list(APPEND HDRS x11/pdcx11.h)
 endif (${PDCURSES_TARGET} STREQUAL "x11")
-	
+  
 if (UNIX)
 
 set(XLIBINCLUDE "/usr/include/X11")
@@ -33,8 +33,8 @@ set(XLIBLIBRARY "/usr/X11/lib/libX11.dylib" "/usr/X11/lib/libXt.dylib" "/usr/X11
 endif (APPLE)
 
 endif(UNIX)
-	
-	
+  
+  
 set(SRCS
 pdcurses/addch.c
 pdcurses/addchstr.c
@@ -90,6 +90,10 @@ list(APPEND SRCS x11/sb.c)
 list(APPEND SRCS x11/scrlbox.c)
 list(APPEND HDRS x11/scrlbox.h)
 endif (${PDCURSES_TARGET} STREQUAL "x11")
+
+if (${PDCURSES_TARGET} STREQUAL "sdl2")
+list(APPEND SRCS sdl2/pdcimg.c)
+endif (${PDCURSES_TARGET} STREQUAL "sdl2")
 
 set(FIREWORK
 demos/firework.c
@@ -158,78 +162,78 @@ target_compile_definitions(pdcurses
 
 target_include_directories(pdcurses
     PUBLIC
-   	${CMAKE_CURRENT_SOURCE_DIR}
-    )	
-	
+     ${CMAKE_CURRENT_SOURCE_DIR}
+    )  
+  
 if (${PDCURSES_TARGET} STREQUAL "x11")
 target_include_directories(pdcurses
     PUBLIC
-   	${XLIBINCLUDE}
-    )	
+     ${XLIBINCLUDE}
+    )  
 target_link_libraries(pdcurses
     PUBLIC
-	  ${XLIBLIBRARY}  
-    )	
+    ${XLIBLIBRARY}  
+    )  
 endif(${PDCURSES_TARGET} STREQUAL "x11")
 
 if (${PDCURSES_TARGET} STREQUAL "sdl2")
 target_include_directories(pdcurses
     PUBLIC
-   	${CMAKE_CURRENT_SOURCE_DIR}/../SDL2/include
+     ${CMAKE_CURRENT_SOURCE_DIR}/../SDL2/include
     ${CMAKE_CURRENT_SOURCE_DIR}/../SDL2_ttf
-    )	
+    )  
 target_link_libraries(pdcurses
     PUBLIC
-	  SDL2
+    SDL2
     SDL2_ttf
-    )	
+    )  
 endif (${PDCURSES_TARGET} STREQUAL "sdl2")
     
     
 add_executable(firework ${FIREWORK})
 target_link_libraries(firework
-    PUBLIC	    
+    PUBLIC      
     pdcurses
     )
 
 add_executable(rain ${RAIN})
 target_link_libraries(rain
-    PUBLIC	    
+    PUBLIC      
     pdcurses
     )
 
 add_executable(worm ${WORM})
 target_link_libraries(worm
-    PUBLIC	    
+    PUBLIC      
     pdcurses
     )
 
 add_executable(ozdemo ${OZDEMO})
 target_link_libraries(ozdemo
-    PUBLIC	    
+    PUBLIC      
     pdcurses
     )
 
 add_executable(xmas ${XMAS})
 target_link_libraries(xmas
-    PUBLIC	    
+    PUBLIC      
     pdcurses
     )
 
 add_executable(tuidemo ${TUIDEMO})
 target_link_libraries(tuidemo
-    PUBLIC	    
+    PUBLIC      
     pdcurses
     )
 
 add_executable(ptest ${PTEST})
 target_link_libraries(ptest
-    PUBLIC	    
+    PUBLIC      
     pdcurses
     )
 
 add_executable(testcurs ${TESTCURS})
 target_link_libraries(testcurs
-    PUBLIC	    
+    PUBLIC      
     pdcurses
     )

@@ -49,3 +49,39 @@ extern int pdc_rgb_rows, pdc_rgb_cols;
 /* returns nonzero if the cell's RGB value changed (cell is invalidated) */
 PDCEX int  PDC_set_cell_rgb(int y, int x, Uint32 fg, Uint32 bg);
 PDCEX void PDC_free_rgb(void);
+
+/* Overlay images (see pdcimg.c): bitmaps that are painted on top of the
+   character cells, after the cells have been drawn.
+
+   An image is placed on a rectangle of cells (place_*, may extend beyond
+   the screen); it is scaled to fit that rectangle (keeping its aspect
+   ratio) and centred in it. Only the cells of the visible runs are covered
+   by the image: a run is a horizontal span of cells (row, col .. col+ncols)
+   that the caller verified to still show the image's placeholder. */
+
+typedef struct
+{
+    int image;                      /* handle from PDC_image_create */
+    int row, col, ncols;            /* covered cells */
+    int place_x, place_y;           /* placement of the whole image, in */
+    int place_w, place_h;           /* cells */
+} PdcOverlayRun;
+
+/* creates an image from 8-bit RGBA pixels (copied); returns a handle > 0,
+   or 0 on failure */
+PDCEX int  PDC_image_create(const void *rgba, int width, int height);
+PDCEX void PDC_image_destroy(int image);
+
+/* replaces the list of visible overlay runs; they are (re)painted by the
+   next PDC_doupdate */
+PDCEX void PDC_set_overlays(const PdcOverlayRun *runs, int count);
+
+/* size of a character cell in pixels */
+PDCEX void PDC_get_cell_size(int *width, int *height);
+
+/* internal: cells redrawn by PDC_transform_line lose their image pixels */
+void PDC_overlay_touch(int lineno, int x, int len);
+/* internal: paints the overlays, called by PDC_doupdate */
+void PDC_paint_overlays(void);
+/* internal: queues a rect for SDL_UpdateWindowSurfaceRects */
+void PDC_add_update_rect(SDL_Rect rect);
